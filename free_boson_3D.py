@@ -66,9 +66,9 @@ def getCorrelators_3d(L, bc_x, bc_y, bc_z, mass, r, rprime):
 
   return phiphi/(2*L**d), pipi/(2*L**d)
 
-#####################################  getXAPA_edge_corr  #####################################
+#####################################  getXAPA_rect_corr  #####################################
 ###############################################################################################
-def getXAPA_edge_corr(L, LA_x, LA_y, LA_z, bc_x, bc_y, bc_z, mass):
+def getXAPA_rect_corr(L, LA_x, LA_y, LA_z, bc_x, bc_y, bc_z, mass):
 
   #Calculate all needing correlators:
   X_from0 = np.zeros((LA_x,LA_y,LA_z))
@@ -105,9 +105,9 @@ def getXAPA_edge_corr(L, LA_x, LA_y, LA_z, bc_x, bc_y, bc_z, mass):
   
   return XA, PA
 
-######################################  getXAPA_edge_K  #######################################
+######################################  getXAPA_rect_K  #######################################
 ###############################################################################################
-def getXAPA_edge_K(L, LA_x, LA_y, LA_z, bc_x, bc_y, bc_z, mass):
+def getXAPA_rect_K(L, LA_x, LA_y, LA_z, bc_x, bc_y, bc_z, mass):
   d = 3
   Lx=Ly=Lz=L
   Ltup = (Lx,Ly,Lz)
@@ -190,7 +190,7 @@ def getXAPA_edge_K(L, LA_x, LA_y, LA_z, bc_x, bc_y, bc_z, mass):
     PA = P[sitesA][:,sitesA]
   
   else:
-    print "*** Boundary condition %sx_%sy_%sz is not supported in getXAPA_edge_K ***" %(bc_x,bc_y,bc_z)
+    print "*** Boundary condition %sx_%sy_%sz is not supported in getXAPA_rect_K ***" %(bc_x,bc_y,bc_z)
   
   return XA,PA
 
