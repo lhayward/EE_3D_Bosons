@@ -92,27 +92,38 @@ sys.stdout.flush()
 
 t1 = time.clock() #for timing
 
-filename = "EE_evals_3D_%sx_%sy_%sz_L%d_mass%s.txt" %(bc_x,bc_y,bc_z,L,decimalStr(mass))
+filename = "EE_3D_%sx_%sy_%sz_L%d_mass%s.txt" %(bc_x,bc_y,bc_z,L,decimalStr(mass))
 fout = open(filename, 'w')
 
-LA_x = L/2
-LA_y = L/2
-LA_z = L
+alpha = [1, 2]
+LA_x_max = (L)/2
+LA_y     = L
+LA_z     = L
 
-#XA,PA = free_boson_3D.getXAPA_rect_K(L,LA_x,LA_y,LA_z,bc_x,bc_y,bc_z,mass)
-XA,PA = free_boson_3D.getXAPA_rect_corr(L,LA_x,LA_y,LA_z,bc_x,bc_y,bc_z,mass)
+#Calculate all needed correlators:
+X_from0, P_from0 = free_boson_3D.getXP_from0(L, LA_x_max, LA_y, LA_z, bc_x, bc_y, bc_z, mass)
+
+#Loop over all cylinders:
+for LA_x in range(1,LA_x_max+1):
+  t1_A = time.clock() #for timing
+  print "\nLA = %d" %LA_x
+  sys.stdout.flush()
+  XA,PA = free_boson_3D.getXAPA_fromXP0(L, LA_x, LA_y, LA_z, X_from0, P_from0, mass)
+  
+  S_alpha_Evs = free_boson_3D.getEntropy_Evs(XA,PA)
+  S_alpha     = free_boson_3D.getEntropy(S_alpha_Evs,alpha)
+  
+  #Save results to file:
+  fout.write("%d" %LA_x)
+  for Sn in S_alpha:
+    fout.write(" %.15f" %Sn)
+  fout.write("\n")
+  fout.flush()
+
+  t2_A = time.clock()
+  print "\nTime for LA = %d: %.5f sec. " %(LA_x, t2_A-t1_A)
+  sys.stdout.flush()
+#End loop over cylinders
 
 t2 = time.clock()
-print "\nTime to build XA, PA: " + str(t2-t1) + " sec."
-sys.stdout.flush()
-
-S_alpha_Evs = free_boson_3D.getEntropy_Evs(XA,PA)
-
-#Save results to file:
-for ev in S_alpha_Evs:
-  fout.write(" %.20f\n" %ev)
-#fout.flush()
-fout.close()
-
-t2 = time.clock()
-print "Total elapsed time: " + str(t2-t1) + " sec."
+print "Total elapsed time: %.5f sec." %(t2-t1)

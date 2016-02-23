@@ -70,14 +70,57 @@ def getCorrelators_3d(L, bc_x, bc_y, bc_z, mass, r, rprime):
 ###############################################################################################
 def getXAPA_rect_corr(L, LA_x, LA_y, LA_z, bc_x, bc_y, bc_z, mass):
 
-  #Calculate all needing correlators:
-  X_from0 = np.zeros((LA_x,LA_y,LA_z))
-  P_from0 = np.zeros((LA_x,LA_y,LA_z))
-  for x in range(LA_x):
+  #Calculate all needed correlators:
+#   X_from0 = np.zeros((LA_x,LA_y,LA_z))
+#   P_from0 = np.zeros((LA_x,LA_y,LA_z))
+#   for x in range(LA_x):
+#     for y in range(LA_y):
+#       for z in range(LA_z):
+#         X_from0[x,y,z], P_from0[x,y,z] = getCorrelators_3d(L, bc_x, bc_y, bc_z, mass, (0,0,0), (x,y,z))
+  X_from0, P_from0 = getXP_from0(L, LA_x, LA_y, LA_z, bc_x, bc_y, bc_z, mass)
+  
+  sitesA = np.zeros(LA_x*LA_y*LA_z).tolist() #the indices of the sites in region A
+  count = 0
+  for x in range(0,LA_x):
+    for y in range(0,LA_y):
+      for z in range(0,LA_z):
+        sitesA[count] = site((L,L,L),x,y,z)
+        count = count + 1
+  
+  #Calculate XA and PA:
+  NA = len(sitesA)
+  XA = np.zeros((NA,NA))
+  PA = np.zeros((NA,NA))
+  for iA, sitei in enumerate(sitesA):
+    for jA, sitej in enumerate(sitesA): 
+      xi = sitei%L #sitei%Lx
+      yi = ((sitei-xi)/L)%L #((sitei-xi)/Lx)%Ly
+      zi = (sitei-xi-yi*L)/(L*L) #(sitei-x-y*Lx)/(Lx*Ly)
+    
+      xj = sitej%L 
+      yj = ((sitej-xj)/L)%L 
+      zj = (sitej-xj-yj*L)/(L*L) 
+    
+      XA[iA,jA] = X_from0[abs(xj-xi),abs(yj-yi),abs(zj-zi)]
+      PA[iA,jA] = P_from0[abs(xj-xi),abs(yj-yi),abs(zj-zi)]
+  
+  return XA, PA
+
+########################################  getXP_from0  ########################################
+###############################################################################################
+def getXP_from0(L, LA_x_max, LA_y, LA_z, bc_x, bc_y, bc_z, mass):
+  #Calculate all needed correlators:
+  X_from0 = np.zeros((LA_x_max,LA_y,LA_z))
+  P_from0 = np.zeros((LA_x_max,LA_y,LA_z))
+  for x in range(LA_x_max):
     for y in range(LA_y):
       for z in range(LA_z):
         X_from0[x,y,z], P_from0[x,y,z] = getCorrelators_3d(L, bc_x, bc_y, bc_z, mass, (0,0,0), (x,y,z))
-  
+  return X_from0,P_from0
+
+######################################  getXAPA_fromXP0  ######################################
+###############################################################################################
+def getXAPA_fromXP0(L, LA_x, LA_y, LA_z, X_from0, P_from0, mass):
   sitesA = np.zeros(LA_x*LA_y*LA_z).tolist() #the indices of the sites in region A
   count = 0
   for x in range(0,LA_x):
@@ -214,7 +257,21 @@ def getEntropy_Evs(XA,PA):
 #   #end alpha loop
 #   
 #   return S_alpha
-#........................................END getEntropy........................................
+#......................................END getEntropy_Evs......................................
+
+########################################  getEntropy  #########################################
+###############################################################################################
+def getEntropy(Evs,alpha):
+ #Calculate the EE for each alpha:
+  S_alpha = np.zeros(len(alpha))
+  for i, n in enumerate(alpha):
+    if n == 1:
+      S_alpha[i] = np.sum( (Evs+1./2)*np.log(Evs+1./2.) - (Evs-1./2.)*np.log(Evs-1./2) )
+    else:
+      S_alpha[i] = 1.0/(n-1.0)*np.sum( np.log( (Evs+1./2)**n - (Evs-1./2.)**n ) )
+  #end alpha loop
+  
+  return S_alpha
 
 ###############################################################################################
 ###########################################  site  ############################################
